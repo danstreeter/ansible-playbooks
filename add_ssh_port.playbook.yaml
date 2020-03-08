@@ -1,0 +1,27 @@
+- name: Modify SSHDConfig top open new port
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  vars:
+    sshdconfig: /etc/ssh/sshd_config
+    newport: 2222
+
+  tasks:
+    - name: Allow port 22
+      replace: 
+        path: "{{ sshdconfig }}"
+        backup: yes
+        regexp: '^#Port 22'
+        replace: 'Port 22'
+
+    - name: Add {{ newport }} as allowed port
+      lineinfile:
+        path: "{{ sshdconfig }}"
+        # regexp: '^Port 22' # Use this line to REPLACE
+        line: 'Port {{ newport }}'
+        insertafter: '^Port 22'
+        state: present
+
+    - name: Restart SSHD
+      service: name=sshd state=restarted
